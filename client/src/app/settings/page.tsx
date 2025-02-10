@@ -3,51 +3,71 @@
 import React, { useState, useEffect } from "react";
 import {
   useCreateSessionMutation,
-  useCloseSessionMutation,
   useGetActiveSessionQuery,
+  useCloseSessionMutation,
   useCreateManagerMutation,
+  useGetManagersQuery,
 } from "@/state/api";
 import { useAppDispatch } from "@/app/redux";
 import { setActiveSession } from "@/state/globalSlice";
 
+interface Gestionnaire {
+  nom: string;
+  prenom: string;
+  email: string;
+  motDePasse: string;
+}
+
 const SettingsPage: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  // États de connexion
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
-  // États du formulaire de session
+  // États locaux pour la gestion des sessions
+  const [nomSession, setNomSession] = useState("");
   const [fraisDepot, setFraisDepot] = useState("");
   const [fraisVente, setFraisVente] = useState("");
-  const [nomSession, setNomSession] = useState("");
+  const [isSessionActive, setIsSessionActive] = useState(false);
 
-  const { data: activeSessionData, error: activeSessionError, refetch: refetchActiveSession } =
-    useGetActiveSessionQuery(undefined, { refetchOnMountOrArgChange: true });
-
-  const [createSession] = useCreateSessionMutation();
-  const [closeSession, { isSuccess: closeSuccess }] = useCloseSessionMutation();
-
-  // États pour le formulaire de création d'un nouveau manager
+  // États locaux pour la gestion des gestionnaires
   const [newNom, setNewNom] = useState("");
   const [newPrenom, setNewPrenom] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newMotDePasse, setNewMotDePasse] = useState("");
+  const [gestionnaires, setGestionnaires] = useState<Gestionnaire[]>([]);
 
-  const [createManager] = useCreateManagerMutation();
+  // Hooks RTK Query
+  const { data: activeSessionData, refetch: refetchActiveSession } = useGetActiveSessionQuery();
+  const [createSession, { isLoading: isCreatingSession }] = useCreateSessionMutation();
+  const [closeSession, { isLoading: isClosingSession }] = useCloseSessionMutation();
 
-  // Fonction de connexion
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  const { data: managersData, isLoading: managersLoading, refetch: refetchManagers } = useGetManagersQuery();
+  const [createManager, { isLoading: isCreatingManager }] = useCreateManagerMutation();
+
+  // Initialiser l'état de la session active
+  useEffect(() => {
+    setIsSessionActive(!!activeSessionData);
+  }, [activeSessionData]);
+
+  // Mettre à jour la liste des gestionnaires
+  useEffect(() => {
+    if (managersData) {
+      setGestionnaires(
+        managersData.map((manager) => ({
+          nom: manager.Nom,
+          prenom: manager.Prenom,
+          email: manager.Email,
+          motDePasse: "******", // Masquer le mot de passe
+        }))
+      );
+    }
+  }, [managersData]);
 
   // Fonction pour créer une session
   const handleCreateSession = async () => {
-    if (activeSessionData && !activeSessionError) {
-      alert("Une session est déjà active. Veuillez la fermer avant de créer une nouvelle session.");
+    if (isSessionActive) {
+      alert("Une session est déjà active. Veuillez fermer la session active avant d'en créer une nouvelle.");
       return;
     }
+
     try {
       const newSession = await createSession({
         NomSession: nomSession,
@@ -56,164 +76,162 @@ const SettingsPage: React.FC = () => {
       }).unwrap();
 
       dispatch(setActiveSession(newSession));
+      setNomSession("");
       setFraisDepot("");
       setFraisVente("");
-      setNomSession("");
+      setIsSessionActive(true);
       refetchActiveSession();
     } catch (error) {
       console.error("Erreur lors de la création de la session :", error);
-      alert("Erreur lors de la création de la session.");
     }
   };
 
   // Fonction pour fermer la session active
   const handleCloseSession = async () => {
-    if (!activeSessionData) {
+    if (!isSessionActive) {
       alert("Aucune session active à fermer.");
       return;
     }
+
     try {
       await closeSession().unwrap();
       dispatch(setActiveSession(null));
+      setIsSessionActive(false);
       refetchActiveSession();
     } catch (error) {
       console.error("Erreur lors de la fermeture de la session :", error);
-      alert("Erreur lors de la fermeture de la session.");
     }
   };
 
-  useEffect(() => {
-    if (closeSuccess) {
-      refetchActiveSession();
-    }
-  }, [closeSuccess, refetchActiveSession]);
-
-  // Fonction pour créer un nouveau manager
+  // Fonction pour ajouter un gestionnaire
   const handleAddManager = async () => {
     try {
-      await createManager({
+      const newManager = await createManager({
         Nom: newNom,
         Prenom: newPrenom,
         Email: newEmail,
         MdP: newMotDePasse,
       }).unwrap();
+
+      setGestionnaires((prev) => [
+        ...prev,
+        {
+          nom: newManager.Nom,
+          prenom: newManager.Prenom,
+          email: newManager.Email,
+          motDePasse: newMotDePasse,
+        },
+      ]);
+
       setNewNom("");
       setNewPrenom("");
       setNewEmail("");
       setNewMotDePasse("");
-      alert("Gestionnaire créé avec succès !");
+      refetchManagers();
     } catch (error) {
-      console.error("Erreur lors de la création du manager :", error);
-      alert("Erreur lors de la création du manager.");
+      console.error("Erreur lors de la création du gestionnaire :", error);
     }
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#f0f0f5",
-        }}
-      >
-        <div
-          style={{
-            borderRadius: "12px",
-            border: "1px solid #ddd",
-            padding: "40px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            backgroundColor: "white",
-            width: "300px",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ marginBottom: "20px", fontSize: "24px", fontWeight: "bold" }}>
-            Connexion
-          </h2>
+  return (
+    <div className="settings-page">
+      <h1>Gestion des Sessions et des Gestionnaires</h1>
+
+      {/* Section de gestion des sessions */}
+      <section className="section">
+        <h2>Gestion des Sessions</h2>
+        {isSessionActive ? (
+          <div className="active-session">
+            <h3>Session Active</h3>
+            <p><strong>Nom :</strong> {activeSessionData?.NomSession}</p>
+            <p><strong>Frais Dépôt :</strong> {activeSessionData?.pourc_frais_depot}%</p>
+            <p><strong>Frais Vente :</strong> {activeSessionData?.pourc_frais_vente}%</p>
+            <button onClick={handleCloseSession} disabled={isClosingSession}>
+              {isClosingSession ? "Fermeture en cours..." : "Fermer la Session"}
+            </button>
+          </div>
+        ) : (
+          <div className="create-session">
+            <h3>Créer une Nouvelle Session</h3>
+            <input
+              type="text"
+              placeholder="Nom de la Session"
+              value={nomSession}
+              onChange={(e) => setNomSession(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Frais Dépôt (%)"
+              value={fraisDepot}
+              onChange={(e) => setFraisDepot(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Frais Vente (%)"
+              value={fraisVente}
+              onChange={(e) => setFraisVente(e.target.value)}
+            />
+            <button onClick={handleCreateSession} disabled={isCreatingSession}>
+              {isCreatingSession ? "Création en cours..." : "Créer la Session"}
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* Section de gestion des gestionnaires */}
+      <section className="section">
+        <h2>Gestion des Gestionnaires</h2>
+        <div className="add-manager">
+          <h3>Ajouter un Gestionnaire</h3>
           <input
             type="text"
-            placeholder="Nom d'utilisateur"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-            }}
+            placeholder="Nom"
+            value={newNom}
+            onChange={(e) => setNewNom(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Prénom"
+            value={newPrenom}
+            onChange={(e) => setNewPrenom(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
           />
           <input
             type="password"
-            placeholder="Mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "10px",
-              marginBottom: "20px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-            }}
+            placeholder="Mot de Passe"
+            value={newMotDePasse}
+            onChange={(e) => setNewMotDePasse(e.target.value)}
           />
-          <button
-            onClick={handleLogin}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "8px",
-              backgroundColor: "#007BFF",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Connexion
+          <button onClick={handleAddManager} disabled={isCreatingManager}>
+            {isCreatingManager ? "Ajout en cours..." : "Ajouter"}
           </button>
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div>
-      <button onClick={handleCreateSession}>Créer une session</button>
-      <button onClick={handleCloseSession}>Fermer la session</button>
-      <div>
-        <h3>Ajouter un gestionnaire</h3>
-        <input
-          type="text"
-          placeholder="Nom"
-          value={newNom}
-          onChange={(e) => setNewNom(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Prénom"
-          value={newPrenom}
-          onChange={(e) => setNewPrenom(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={newMotDePasse}
-          onChange={(e) => setNewMotDePasse(e.target.value)}
-        />
-        <button onClick={handleAddManager}>Ajouter</button>
-      </div>
+        <div className="managers-list">
+          <h3>Liste des Gestionnaires</h3>
+          {managersLoading ? (
+            <p>Chargement...</p>
+          ) : (
+            gestionnaires.map((gestionnaire, index) => (
+              <div key={index} className="manager-item">
+                <p>
+                  {gestionnaire.nom} {gestionnaire.prenom} - {gestionnaire.email}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 };
 
 export default SettingsPage;
+
+
 
