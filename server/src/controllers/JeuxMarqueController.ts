@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import fs from "fs";
-import csv from "csv-parser";
-
 const prisma = new PrismaClient();
 
 //  Créer une nouvelle marque de jeu
