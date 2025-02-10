@@ -21,13 +21,12 @@ interface Gestionnaire {
 const SettingsPage: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  // États locaux pour la gestion des sessions
+  // States for session management
   const [nomSession, setNomSession] = useState("");
   const [fraisDepot, setFraisDepot] = useState("");
   const [fraisVente, setFraisVente] = useState("");
-  const [isSessionActive, setIsSessionActive] = useState(false);
 
-  // États locaux pour la gestion des gestionnaires
+  // States for manager management
   const [newNom, setNewNom] = useState("");
   const [newPrenom, setNewPrenom] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -42,12 +41,7 @@ const SettingsPage: React.FC = () => {
   const { data: managersData, isLoading: managersLoading, refetch: refetchManagers } = useGetManagersQuery();
   const [createManager, { isLoading: isCreatingManager }] = useCreateManagerMutation();
 
-  // Initialiser l'état de la session active
-  useEffect(() => {
-    setIsSessionActive(!!activeSessionData);
-  }, [activeSessionData]);
-
-  // Mettre à jour la liste des gestionnaires
+  // Update managers list when data is fetched
   useEffect(() => {
     if (managersData) {
       setGestionnaires(
@@ -55,15 +49,15 @@ const SettingsPage: React.FC = () => {
           nom: manager.Nom,
           prenom: manager.Prenom,
           email: manager.Email,
-          motDePasse: "******", // Masquer le mot de passe
+          motDePasse: "******", // Mask password
         }))
       );
     }
   }, [managersData]);
 
-  // Fonction pour créer une session
+  // Handlers
   const handleCreateSession = async () => {
-    if (isSessionActive) {
+    if (activeSessionData) {
       alert("Une session est déjà active. Veuillez fermer la session active avant d'en créer une nouvelle.");
       return;
     }
@@ -79,16 +73,14 @@ const SettingsPage: React.FC = () => {
       setNomSession("");
       setFraisDepot("");
       setFraisVente("");
-      setIsSessionActive(true);
       refetchActiveSession();
     } catch (error) {
       console.error("Erreur lors de la création de la session :", error);
     }
   };
 
-  // Fonction pour fermer la session active
   const handleCloseSession = async () => {
-    if (!isSessionActive) {
+    if (!activeSessionData) {
       alert("Aucune session active à fermer.");
       return;
     }
@@ -96,14 +88,12 @@ const SettingsPage: React.FC = () => {
     try {
       await closeSession().unwrap();
       dispatch(setActiveSession(null));
-      setIsSessionActive(false);
       refetchActiveSession();
     } catch (error) {
       console.error("Erreur lors de la fermeture de la session :", error);
     }
   };
 
-  // Fonction pour ajouter un gestionnaire
   const handleAddManager = async () => {
     try {
       const newManager = await createManager({
@@ -137,15 +127,15 @@ const SettingsPage: React.FC = () => {
     <div className="settings-page">
       <h1>Gestion des Sessions et des Gestionnaires</h1>
 
-      {/* Section de gestion des sessions */}
+      {/* Session Management Section */}
       <section className="section">
         <h2>Gestion des Sessions</h2>
-        {isSessionActive ? (
+        {activeSessionData ? (
           <div className="active-session">
             <h3>Session Active</h3>
-            <p><strong>Nom :</strong> {activeSessionData?.NomSession}</p>
-            <p><strong>Frais Dépôt :</strong> {activeSessionData?.pourc_frais_depot}%</p>
-            <p><strong>Frais Vente :</strong> {activeSessionData?.pourc_frais_vente}%</p>
+            <p><strong>Nom :</strong> {activeSessionData.NomSession}</p>
+            <p><strong>Frais Dépôt :</strong> {activeSessionData.pourc_frais_depot}%</p>
+            <p><strong>Frais Vente :</strong> {activeSessionData.pourc_frais_vente}%</p>
             <button onClick={handleCloseSession} disabled={isClosingSession}>
               {isClosingSession ? "Fermeture en cours..." : "Fermer la Session"}
             </button>
@@ -178,7 +168,7 @@ const SettingsPage: React.FC = () => {
         )}
       </section>
 
-      {/* Section de gestion des gestionnaires */}
+      {/* Manager Management Section */}
       <section className="section">
         <h2>Gestion des Gestionnaires</h2>
         <div className="add-manager">
