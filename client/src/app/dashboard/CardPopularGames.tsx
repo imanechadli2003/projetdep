@@ -1,7 +1,6 @@
 import { useGetDashboardMetricsQuery } from "@/state/api";
 import { ShoppingBag } from "lucide-react";
 import React from "react";
-import Image from "next/image";
 
 const CardPopularGames = () => {
   const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
@@ -17,13 +16,13 @@ const CardPopularGames = () => {
           </h3>
           <hr />
           <div className="overflow-auto h-full">
-            {dashboardMetrics?.popularGames.map((game) => (
+            {dashboardMetrics?.popularGames.map((game: { JeuID: React.Key | null | undefined; jeuxMarque: { Nom: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; }; prix_unitaire: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; quantite_disponible: number; }) => (
               <div
                 key={game.JeuID}
                 className="flex items-center justify-between gap-3 px-5 py-7 border-b"
               >
                 <div className="flex items-center gap-3">
-                  <img></img>
+                  
                   
                   <div className="flex flex-col justify-between gap-1">
                     <div className="font-bold text-gray-700">
