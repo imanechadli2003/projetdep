@@ -1,7 +1,7 @@
 module.export={
     apps:[
         {
-            name:"projetfinal",
+            name:"projetdep",
             script:"npm",
             args:"run dev",
             env:{
