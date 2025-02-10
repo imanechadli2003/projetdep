@@ -21,12 +21,12 @@ interface Gestionnaire {
 const SettingsPage: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  // States for session management
+  // États pour la gestion des sessions
   const [nomSession, setNomSession] = useState("");
   const [fraisDepot, setFraisDepot] = useState("");
   const [fraisVente, setFraisVente] = useState("");
 
-  // States for manager management
+  // États pour la gestion des gestionnaires
   const [newNom, setNewNom] = useState("");
   const [newPrenom, setNewPrenom] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -41,7 +41,7 @@ const SettingsPage: React.FC = () => {
   const { data: managersData, isLoading: managersLoading, refetch: refetchManagers } = useGetManagersQuery();
   const [createManager, { isLoading: isCreatingManager }] = useCreateManagerMutation();
 
-  // Update managers list when data is fetched
+  // Mettre à jour `gestionnaires` avec les données récupérées
   useEffect(() => {
     if (managersData) {
       setGestionnaires(
@@ -49,19 +49,18 @@ const SettingsPage: React.FC = () => {
           nom: manager.Nom,
           prenom: manager.Prenom,
           email: manager.Email,
-          motDePasse: "******", // Mask password
+          motDePasse: "******", // Masquer le mot de passe par défaut
         }))
       );
     }
   }, [managersData]);
 
-  // Handlers
+  // Fonction pour créer une session
   const handleCreateSession = async () => {
     if (activeSessionData) {
       alert("Une session est déjà active. Veuillez fermer la session active avant d'en créer une nouvelle.");
       return;
     }
-
     try {
       const newSession = await createSession({
         NomSession: nomSession,
@@ -79,12 +78,12 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  // Fonction pour fermer la session active
   const handleCloseSession = async () => {
     if (!activeSessionData) {
       alert("Aucune session active à fermer.");
       return;
     }
-
     try {
       await closeSession().unwrap();
       dispatch(setActiveSession(null));
@@ -94,6 +93,7 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  // Fonction pour ajouter un gestionnaire
   const handleAddManager = async () => {
     try {
       const newManager = await createManager({
@@ -124,24 +124,24 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="settings-page">
+    <div>
       <h1>Gestion des Sessions et des Gestionnaires</h1>
 
-      {/* Session Management Section */}
-      <section className="section">
+      {/* Section pour la gestion des sessions */}
+      <section>
         <h2>Gestion des Sessions</h2>
         {activeSessionData ? (
-          <div className="active-session">
+          <div>
             <h3>Session Active</h3>
-            <p><strong>Nom :</strong> {activeSessionData.NomSession}</p>
-            <p><strong>Frais Dépôt :</strong> {activeSessionData.pourc_frais_depot}%</p>
-            <p><strong>Frais Vente :</strong> {activeSessionData.pourc_frais_vente}%</p>
+            <p>Nom de la session : {activeSessionData.NomSession}</p>
+            <p>Frais Dépôt : {activeSessionData.pourc_frais_depot}%</p>
+            <p>Frais Vente : {activeSessionData.pourc_frais_vente}%</p>
             <button onClick={handleCloseSession} disabled={isClosingSession}>
               {isClosingSession ? "Fermeture en cours..." : "Fermer la Session"}
             </button>
           </div>
         ) : (
-          <div className="create-session">
+          <div>
             <h3>Créer une Nouvelle Session</h3>
             <input
               type="text"
@@ -168,10 +168,10 @@ const SettingsPage: React.FC = () => {
         )}
       </section>
 
-      {/* Manager Management Section */}
-      <section className="section">
+      {/* Section pour la gestion des gestionnaires */}
+      <section>
         <h2>Gestion des Gestionnaires</h2>
-        <div className="add-manager">
+        <div>
           <h3>Ajouter un Gestionnaire</h3>
           <input
             type="text"
@@ -202,13 +202,13 @@ const SettingsPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="managers-list">
+        <div>
           <h3>Liste des Gestionnaires</h3>
           {managersLoading ? (
             <p>Chargement...</p>
           ) : (
             gestionnaires.map((gestionnaire, index) => (
-              <div key={index} className="manager-item">
+              <div key={index}>
                 <p>
                   {gestionnaire.nom} {gestionnaire.prenom} - {gestionnaire.email}
                 </p>
@@ -222,6 +222,5 @@ const SettingsPage: React.FC = () => {
 };
 
 export default SettingsPage;
-
 
 
