@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // ====================
 // Interfaces existantes
@@ -34,10 +34,10 @@ export interface Session {
   idSession: number;
   NomSession: string;
   DateDebut: string; // ISO string pour la date
-  DateFin?: string;  // Optionnel si la session est toujours active
+  DateFin?: string; // Optionnel si la session est toujours active
   pourc_frais_depot: number;
   pourc_frais_vente: number;
-  Statut: boolean;   // Indique si la session est active
+  Statut: boolean; // Indique si la session est active
 }
 
 export interface NewSession {
@@ -48,17 +48,17 @@ export interface NewSession {
 
 export interface Depot {
   ID_depot: number;
-  VendeurID: number;  // Référence au vendeur
+  VendeurID: number; // Référence au vendeur
   date_depot: Date;
   id_session: number; // Référence à la session
   comission_depot_total: number;
 }
 
 export interface NewDepot {
-  vendeurId: number;  // Référence au vendeur
+  vendeurId: number; // Référence au vendeur
   jeux: {
     nomJeu: number;
-    prixUnitaire: number; 
+    prixUnitaire: number;
     quantite_depose: number;
   }[];
 }
@@ -71,7 +71,7 @@ export interface JeuxMarque {
 }
 
 export interface Game {
-  jeuxMarque: any;
+  jeuxMarque: JeuxMarque; // Typage précis pour éviter l'utilisation de `any`
   JeuID: number;
   JeuRef_id: number;
   depot_ID: number;
@@ -115,9 +115,6 @@ export interface DashboardMetrics {
   jeuxInvendus: number;
 }
 
-// ====================
-// Nouvelles interfaces pour Manager
-// ====================
 export interface Manager {
   UtilisateurID: number;
   Nom: string;
@@ -139,25 +136,30 @@ export interface NewManager {
 // ====================
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL }),
-  reducerPath: 'api',
-  tagTypes: ['Games', 'Vendors', 'Marques', 'Depots', 'DashboardMetrics', "Session", "Managers"],
+  reducerPath: "api",
+  tagTypes: [
+    "Games",
+    "Vendors",
+    "Marques",
+    "Depots",
+    "DashboardMetrics",
+    "Session",
+    "Managers",
+  ],
   endpoints: (build) => ({
-    // --------------------
-    // Endpoints existants
-    // --------------------
     getJeux: build.query<Game[], string | void>({
       query: (search) => ({
-        url: '/stocks/jeux',
-        params: search ? { search } : {}
+        url: "/stocks/jeux",
+        params: search ? { search } : {},
       }),
-      providesTags: ['Games'],
+      providesTags: ["Games"],
     }),
     getJeuxEnVente: build.query<Game[], string | void>({
       query: (search) => ({
-        url: '/stocks/jeuxenvente',
-        params: search ? { search } : {}
+        url: "/stocks/jeuxenvente",
+        params: search ? { search } : {},
       }),
-      providesTags: ['Games'],
+      providesTags: ["Games"],
     }),
     getBilanVendeurSession: build.query<
       BilanVendeurSession,
@@ -168,122 +170,118 @@ export const api = createApi({
       }),
       transformResponse: (response: { BilanVendeurSession: BilanVendeurSession }) =>
         response.BilanVendeurSession,
-      providesTags: ['Session'],
+      providesTags: ["Session"],
     }),
     getDashboardMetrics: build.query<DashboardMetrics, void>({
       query: () => "/dashboard",
-      providesTags: ['DashboardMetrics']
+      providesTags: ["DashboardMetrics"],
     }),
     creerDepot: build.mutation<Depot, NewDepot>({
-      query: (newdepot) => ({
-        url: '/stocks/depot',
-        method: 'POST',
-        body: newdepot,
+      query: (newDepot) => ({
+        url: "/stocks/depot",
+        method: "POST",
+        body: newDepot,
       }),
-      invalidatesTags: ['Depots'],
+      invalidatesTags: ["Depots"],
     }),
     creerAchat: build.mutation<Achat, NewAchat>({
       query: (newAchat) => ({
-        url: '/achats/achat',
-        method: 'POST',
+        url: "/achats/achat",
+        method: "POST",
         body: newAchat,
       }),
-      invalidatesTags: ['Games', 'DashboardMetrics'],
+      invalidatesTags: ["Games", "DashboardMetrics"],
     }),
     getActiveSession: build.query<Session, void>({
-      query: () => '/sessions/active',
-      providesTags: ['Session'],
+      query: () => "/sessions/active",
+      providesTags: ["Session"],
     }),
     closeSession: build.mutation<Session, void>({
       query: () => ({
-        url: '/sessions/close',
-        method: 'PATCH',
+        url: "/sessions/close",
+        method: "PATCH",
       }),
-      invalidatesTags: ['Session'],
+      invalidatesTags: ["Session"],
     }),
     createSession: build.mutation<Session, NewSession>({
       query: (newSession) => ({
-        url: '/sessions',
-        method: 'POST',
+        url: "/sessions",
+        method: "POST",
         body: newSession,
       }),
-      invalidatesTags: ['Session'],
+      invalidatesTags: ["Session"],
     }),
     creerVendeur: build.mutation<Vendeur, NewVendeur>({
       query: (newVendeur) => ({
-        url: '/vendeurs',
-        method: 'POST',
+        url: "/vendeurs",
+        method: "POST",
         body: newVendeur,
       }),
-      invalidatesTags: ['Vendors'],
+      invalidatesTags: ["Vendors"],
     }),
     updateVendeur: build.mutation<Vendeur, { id: number; data: NewVendeur }>({
       query: ({ id, data }) => ({
         url: `/vendeurs/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Vendors'],
+      invalidatesTags: ["Vendors"],
     }),
     getTopVendeurs: build.query<Vendeur[], void>({
-      query: () => '/vendeurs/top',
-      providesTags: ['Vendors'],
+      query: () => "/vendeurs/top",
+      providesTags: ["Vendors"],
     }),
     mettreEnVente: build.mutation<Game, { id: number; miseEnVente: boolean }>({
       query: ({ id, miseEnVente }) => ({
         url: `stocks/jeux/${id}/mettre-en-vente`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { mise_en_vente: miseEnVente },
       }),
-      invalidatesTags: ['Games'],
+      invalidatesTags: ["Games"],
     }),
     remettre: build.mutation<Game, { id: number; miseEnVente: boolean }>({
       query: ({ id, miseEnVente }) => ({
         url: `stocks/jeux/${id}/remettre`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { mise_en_vente: miseEnVente },
       }),
-      invalidatesTags: ['Games'],
+      invalidatesTags: ["Games"],
     }),
     getSessions: build.query<Session[], void>({
-      query: () => '/sessions',
-      providesTags: ['Session'],
+      query: () => "/sessions",
+      providesTags: ["Session"],
     }),
     getVendeurs: build.query<Vendeur[], void>({
-      query: () => '/stocks/vendeurs',
-      providesTags: ['Vendors'],
+      query: () => "/stocks/vendeurs",
+      providesTags: ["Vendors"],
     }),
     getDepots: build.query<Depot[], void>({
-      query: () => '/stocks/depots',
-      providesTags: ['Depots'],
+      query: () => "/stocks/depots",
+      providesTags: ["Depots"],
     }),
     getVendeurById: build.query<Vendeur, number>({
       query: (id) => `/stocks/vendeurs/${id}`,
-      providesTags: ['Vendors'],
+      providesTags: ["Vendors"],
     }),
     getAllJeuxMarques: build.query<JeuxMarque[], void>({
-      query: () => '/stocks/marques',
-      providesTags: ['Marques'],
+      query: () => "/stocks/marques",
+      providesTags: ["Marques"],
     }),
     getJeuxMarqueById: build.query<JeuxMarque, number>({
       query: (id) => `/stocks/marques/${id}`,
-      providesTags: ['Marques'],
+      providesTags: ["Marques"],
     }),
-
-    // --------------------
-    // Nouveaux endpoints pour les Managers
-    // --------------------
     getManagers: build.query<Manager[], void>({
-      query: () => '/sessions/managers',
-      providesTags: ['Managers'],
+      query: () => "/sessions/managers",
+      providesTags: ["Managers"],
     }),
     createManager: build.mutation<Manager, NewManager>({
       query: (newManager) => ({
-        url: '/sessions/managers',
-        method: 'POST',
+        url: "/sessions/managers",
+        method: "POST",
         body: newManager,
       }),
-      invalidatesTags: ['Managers'],
+      invalidatesTags: ["Managers"],
     }),
   }),
 });
@@ -307,12 +305,11 @@ export const {
   useGetTopVendeursQuery,
   useCreerVendeurMutation,
   useUpdateVendeurMutation,
-  useGetActiveSessionQuery, 
+  useGetActiveSessionQuery,
   useCloseSessionMutation,
   useCreateSessionMutation,
   useGetBilanVendeurSessionQuery,
   useGetSessionsQuery,
-  // Nouveaux hooks pour les managers
   useGetManagersQuery,
   useCreateManagerMutation,
 } = api;

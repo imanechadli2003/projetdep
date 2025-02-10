@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import {
   useGetJeuxEnVenteQuery,
   useCreerAchatMutation,
-  useGetDepotsQuery,
-  useGetVendeursQuery,
+  // Suppression des hooks inutilisés
+  // useGetDepotsQuery,
+  // useGetVendeursQuery,
   useGetAllJeuxMarquesQuery,
 } from "@/state/api";
 import Header from "@/app/(components)/Header";
@@ -16,8 +17,7 @@ import { SearchIcon } from "lucide-react";
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { data: jeux, error, isLoading } = useGetJeuxEnVenteQuery(searchTerm);
-  const { data: depots } = useGetDepotsQuery();
-  const { data: vendeurs } = useGetVendeursQuery();
+  // Les hooks pour depots et vendeurs ont été supprimés car non utilisés
   const { data: marques } = useGetAllJeuxMarquesQuery();
   const [createAchat] = useCreerAchatMutation();
 
@@ -71,9 +71,8 @@ const Inventory = () => {
     const jeuId = Number(rowId);
     const jeu = jeux?.find((j) => j.JeuID === jeuId);
     const quantity = quantities[jeuId] || 1;
-    return jeu ? sum + (jeu.prix_unitaire * quantity) : sum;
+    return jeu ? sum + jeu.prix_unitaire * quantity : sum;
   }, 0);
-  
 
   if (isLoading) {
     return <div className="py-4 text-center">Chargement...</div>;
@@ -160,7 +159,7 @@ const Inventory = () => {
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 mx-auto mt-16 transform transition-all ease-in-out max-h-[80vh] overflow-y-auto">
           <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-            Confirmer l'achat
+            Confirmer l&apos;achat
           </h2>
           {selectedRows.map((rowId) => {
             const jeuId = Number(rowId);
@@ -170,7 +169,10 @@ const Inventory = () => {
               <div key={rowId} className="mb-6">
                 <div className="flex justify-between items-center">
                   <p className="text-lg font-medium">
-                    <strong>{jeu.jeuxMarque?.Nom || `Jeu ${jeu.JeuID}`}</strong> - ${Number(jeu.prix_unitaire).toFixed(2)} x{" "}
+                    <strong>
+                      {jeu.jeuxMarque?.Nom || `Jeu ${jeu.JeuID}`}
+                    </strong>{" "}
+                    - ${Number(jeu.prix_unitaire).toFixed(2)} x{" "}
                     <span className="font-semibold">
                       {quantities[jeuId] || 1}
                     </span>
@@ -185,7 +187,9 @@ const Inventory = () => {
                   variant="outlined"
                   fullWidth
                   value={quantities[jeuId] || ""}
-                  onChange={(e) => handleQuantityChange(rowId as string, e.target.value)}
+                  onChange={(e) =>
+                    handleQuantityChange(rowId as string, e.target.value)
+                  }
                   className="mt-2"
                 />
               </div>
@@ -199,7 +203,11 @@ const Inventory = () => {
           </div>
 
           <div className="flex justify-end mt-6 space-x-4">
-            <Button variant="outlined" color="secondary" onClick={() => setIsModalOpen(false)}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => setIsModalOpen(false)}
+            >
               Annuler
             </Button>
             <Button
@@ -208,7 +216,7 @@ const Inventory = () => {
               onClick={handleCreateAchat}
               disabled={selectedRows.length === 0}
             >
-              Confirmer l'achat
+              Confirmer l&apos;achat
             </Button>
           </div>
         </div>

@@ -1,11 +1,9 @@
-// src/redux.tsx
 import React, { useRef } from "react";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider, TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import globalReducer from "@/state/globalSlice"; // Importez votre slice global
+import globalReducer from "@/state/globalSlice";
 import { api } from "@/state/api";
 import { setupListeners } from "@reduxjs/toolkit/query";
-
 import {
   persistStore,
   persistReducer,
@@ -22,15 +20,13 @@ import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 // Si vous êtes côté serveur, utilisez un stockage fictif
 const createNoopStorage = () => {
   return {
-    getItem(_key: any) {
-      return Promise.resolve(null);
-    },
-    setItem(_key: any, value: any) {
-      return Promise.resolve(value);
-    },
-    removeItem(_key: any) {
-      return Promise.resolve();
-    },
+    // Désactivation ESLint pour les paramètres inutilisés
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getItem: async (_: string) => null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setItem: async (_: string, value: string) => value,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    removeItem: async (_: string) => {},
   };
 };
 

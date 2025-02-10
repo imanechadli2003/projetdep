@@ -8,16 +8,35 @@ import {
 } from "@/state/api";
 import { useAppSelector } from "@/app/redux"; // Votre hook Redux personnalisé
 
+// Définition d'une interface pour représenter un vendeur
+interface Vendor {
+  VendeurID: number;
+  Nom: string;
+  Email: string;
+  Telephone: string;
+}
+
+interface NewVendor {
+  Nom: string;
+  Email: string;
+  Telephone: string;
+}
+
 const VendorsPage = () => {
   // Récupération du mode sombre via Redux (doit être vrai en mode sombre)
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
+  // On suppose que l'API renvoie un tableau de Vendor
   const { data: vendors = [], refetch } = useGetVendeursQuery();
   const [createVendor] = useCreerVendeurMutation();
   const [updateVendor] = useUpdateVendeurMutation();
 
-  const [newVendor, setNewVendor] = useState({ Nom: "", Email: "", Telephone: "" });
-  const [selectedVendor, setSelectedVendor] = useState<any | null>(null);
+  const [newVendor, setNewVendor] = useState<NewVendor>({
+    Nom: "",
+    Email: "",
+    Telephone: "",
+  });
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
 
   const handleAddVendor = async () => {
     try {
@@ -51,7 +70,7 @@ const VendorsPage = () => {
   };
 
   // Tri stable des vendeurs par VendeurID
-  const sortedVendors = vendors.slice().sort((a, b) => a.VendeurID - b.VendeurID);
+  const sortedVendors = vendors.slice().sort((a: Vendor, b: Vendor) => a.VendeurID - b.VendeurID);
 
   return (
     // On applique "dark" si isDarkMode est vrai
@@ -69,7 +88,9 @@ const VendorsPage = () => {
               type="text"
               placeholder="Nom"
               value={newVendor.Nom}
-              onChange={(e) => setNewVendor({ ...newVendor, Nom: e.target.value })}
+              onChange={(e) =>
+                setNewVendor({ ...newVendor, Nom: e.target.value })
+              }
               className="border p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
@@ -79,17 +100,23 @@ const VendorsPage = () => {
               type="email"
               placeholder="Email"
               value={newVendor.Email}
-              onChange={(e) => setNewVendor({ ...newVendor, Email: e.target.value })}
+              onChange={(e) =>
+                setNewVendor({ ...newVendor, Email: e.target.value })
+              }
               className="border p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">Téléphone</label>
+            <label className="block text-gray-700 dark:text-gray-300 mb-2">
+              Téléphone
+            </label>
             <input
               type="text"
               placeholder="Téléphone"
               value={newVendor.Telephone}
-              onChange={(e) => setNewVendor({ ...newVendor, Telephone: e.target.value })}
+              onChange={(e) =>
+                setNewVendor({ ...newVendor, Telephone: e.target.value })
+              }
               className="border p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
@@ -103,15 +130,21 @@ const VendorsPage = () => {
 
         {/* Liste des vendeurs */}
         <ul>
-          {sortedVendors.map((vendor) => (
+          {sortedVendors.map((vendor: Vendor) => (
             <li
               key={vendor.VendeurID}
               className="border p-4 mb-4 rounded-lg shadow-lg bg-white dark:bg-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <div>
-                <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{vendor.Nom}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Email: {vendor.Email}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Téléphone: {vendor.Telephone}</p>
+                <p className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                  {vendor.Nom}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Email: {vendor.Email}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Téléphone: {vendor.Telephone}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedVendor(vendor)}
@@ -131,7 +164,9 @@ const VendorsPage = () => {
                 Mettre à jour Vendeur
               </h2>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">Nom</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+                  Nom
+                </label>
                 <input
                   type="text"
                   placeholder="Nom"
@@ -143,7 +178,9 @@ const VendorsPage = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
                 <input
                   type="email"
                   placeholder="Email"
@@ -155,13 +192,18 @@ const VendorsPage = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">Téléphone</label>
+                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+                  Téléphone
+                </label>
                 <input
                   type="text"
                   placeholder="Téléphone"
                   value={selectedVendor.Telephone}
                   onChange={(e) =>
-                    setSelectedVendor({ ...selectedVendor, Telephone: e.target.value })
+                    setSelectedVendor({
+                      ...selectedVendor,
+                      Telephone: e.target.value,
+                    })
                   }
                   className="border p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-700"
                 />

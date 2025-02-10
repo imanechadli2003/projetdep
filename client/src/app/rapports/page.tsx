@@ -36,7 +36,7 @@ ChartJS.register(
   Legend
 );
 
-// Définition d'un type pour le bilan
+// Définition du type pour le bilan
 type BilanType = {
   total_depots: number;
   total_ventes: number;
@@ -53,6 +53,19 @@ const emptyBilan: BilanType = {
   total_comissions: 0,
 };
 
+// Définition d'interfaces pour les données renvoyées par les requêtes
+interface Session {
+  idSession: number;
+  NomSession: string;
+  // Ajoutez d'autres propriétés si nécessaire
+}
+
+interface Vendeur {
+  VendeurID: number;
+  Nom: string;
+  // Ajoutez d'autres propriétés si nécessaire
+}
+
 const BilanVendeurSessionPage: React.FC = () => {
   // Récupération du mode sombre via Redux
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
@@ -67,8 +80,16 @@ const BilanVendeurSessionPage: React.FC = () => {
   const [displayedBilan, setDisplayedBilan] = useState<BilanType>(emptyBilan);
 
   // Récupération des sessions et des vendeurs via RTK Query
-  const { data: sessions, isLoading: sessionsLoading, error: sessionsError } = useGetSessionsQuery();
-  const { data: vendeurs, isLoading: vendeursLoading, error: vendeursError } = useGetVendeursQuery();
+  const {
+    data: sessions,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+  } = useGetSessionsQuery();
+  const {
+    data: vendeurs,
+    isLoading: vendeursLoading,
+    error: vendeursError,
+  } = useGetVendeursQuery();
 
   // Récupération du bilan pour le vendeur et la session sélectionnés
   const {
@@ -124,7 +145,11 @@ const BilanVendeurSessionPage: React.FC = () => {
   if (sessionsLoading || vendeursLoading)
     return <p style={{ textAlign: "center" }}>Chargement des données...</p>;
   if (sessionsError || vendeursError)
-    return <p style={{ textAlign: "center", color: "red" }}>Erreur lors du chargement des données.</p>;
+    return (
+      <p style={{ textAlign: "center", color: "red" }}>
+        Erreur lors du chargement des données.
+      </p>
+    );
 
   // ---------------------------
   // Styles (inchangés)
@@ -304,7 +329,7 @@ const BilanVendeurSessionPage: React.FC = () => {
         >
           <option value="">-- Sélectionnez une session --</option>
           {sessions &&
-            sessions.map((session: any) => (
+            (sessions as Session[]).map((session: Session) => (
               <option key={session.idSession} value={session.idSession}>
                 {session.NomSession}
               </option>
@@ -318,7 +343,7 @@ const BilanVendeurSessionPage: React.FC = () => {
         >
           <option value="">-- Sélectionnez un vendeur --</option>
           {vendeurs &&
-            vendeurs.map((vendeur: any) => (
+            (vendeurs as Vendeur[]).map((vendeur: Vendeur) => (
               <option key={vendeur.VendeurID} value={vendeur.VendeurID}>
                 {vendeur.Nom}
               </option>

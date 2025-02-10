@@ -7,30 +7,29 @@ import {
 } from "@/state/api";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Button } from "@mui/material"; // Importer le bouton
+import { Button } from "@mui/material";
 import CreateProductModal, { depotformdata } from "./createdepot";
+
+// Nouveau composant pour afficher le nom du vendeur
+const VendeurCell: React.FC<{ vendeurId: number }> = ({ vendeurId }) => {
+  const { data: vendeur } = useGetVendeurByIdQuery(vendeurId);
+  return <>{vendeur ? vendeur.Nom : "Loading..."}</>;
+};
 
 const Inventory = () => {
   const { data: depots, error: depotsError, isLoading: depotsLoading } = useGetDepotsQuery();
-  
+
   // État pour gérer l'ouverture du modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fonction pour ouvrir le modal
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
+  // Fonctions pour ouvrir/fermer le modal
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
-  // Fonction pour fermer le modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  // Fonction pour créer un dépôt (lorsque le formulaire est soumis dans le modal)
+  // Fonction appelée lors de la création d'un dépôt (depuis le modal)
   const handleCreateDepot = (formData: depotformdata) => {
     console.log("Dépôt créé avec les données :", formData);
-    // Ici, tu peux appeler ta fonction de création de dépôt (mutation)
-    // Ensuite, ferme le modal après la création
+    // Ici, vous pouvez appeler votre mutation pour créer le dépôt
     handleCloseModal();
   };
 
@@ -46,16 +45,14 @@ const Inventory = () => {
     );
   }
 
+  // Définition des colonnes pour le DataGrid
   const columns: GridColDef[] = [
     { field: "ID_depot", headerName: "ID du depot", width: 200 },
     {
       field: "VendeurID",
       headerName: "Vendeur du dépôt",
       width: 200,
-      renderCell: (params) => {
-        const { data: vendeur } = useGetVendeurByIdQuery(params.value);
-        return vendeur ? vendeur.Nom : "Loading...";
-      },
+      renderCell: (params) => <VendeurCell vendeurId={Number(params.value)} />,
     },
     {
       field: "date_depot",

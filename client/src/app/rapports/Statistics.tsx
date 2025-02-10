@@ -1,12 +1,40 @@
-"use client"
+"use client";
 import React from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-const Statistics = ({ bilan }: { bilan: any }) => {
-  const { total_depots, total_ventes, total_stocks, total_gains, total_comissions } = bilan;
+// Définir une interface pour décrire la structure de "bilan"
+interface Bilan {
+  total_depots: number;
+  total_ventes: number;
+  total_stocks: number;
+  total_gains: number;
+  total_comissions: number;
+}
+
+// Définir l'interface des props du composant
+interface StatisticsProps {
+  bilan: Bilan;
+}
+
+const Statistics: React.FC<StatisticsProps> = ({ bilan }) => {
+  const {
+    total_depots,
+    total_ventes,
+    total_stocks,
+    total_gains,
+    total_comissions,
+  } = bilan;
 
   // Données pour les graphiques
   const barData = {
